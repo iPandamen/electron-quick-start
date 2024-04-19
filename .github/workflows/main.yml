@@ -1,0 +1,36 @@
+name: Build/release
+
+on: push
+
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Build/release Electron app
+        run: | 
+          npm install
+          npm install --save-dev @electron-forge/cli
+          npx electron-forge import
+          npm run make
+          
+      - name: Publish Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            out/*.dmg  # 发布DMG格式的安装包
+            out/*.exe  # 发布Windows安装包
+            out/*.AppImage  # 发布AppImage格式的安装包
+          token: ${{ secrets.GITHUB_TOKEN }}  # GitHub Token用于发布Release
